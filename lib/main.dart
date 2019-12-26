@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:lucky_wheel/spinning_wheel.dart';
+import 'package:lucky_wheel/utils.dart';
 
 void main() => runApp(MyApp());
 
@@ -61,6 +62,8 @@ class _HomePageState extends State<HomePage> {
   double spinAngle = pi / 2;
   TextEditingController _textEditingController =
       TextEditingController(text: '0');
+  SpinningController _spinningController = SpinningController(
+      dividers: 10, initialSpinAngle: 0, spinResistance: 0.2);
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +79,8 @@ class _HomePageState extends State<HomePage> {
               Container(
                 color: Colors.blue,
                 child: SpinningWheel(
-                  Image.asset('assets/images/wheel.png'),
+                  controller: _spinningController,
+                  backdrop: Image.asset('assets/images/wheel.png'),
                   width: 300,
                   height: 300,
                   dividers: 10,
@@ -105,6 +109,17 @@ class _HomePageState extends State<HomePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  RaisedButton(
+                    onPressed: () {
+                      _wheelNotifier.sink.add(_getVelocity());
+                      _calculateResult();
+                    },
+                    child: Text('Start'),
+                  ),
+                ],
+              ),
+              Row(
+                children: <Widget>[
                   Container(
                     width: 100,
                     child: TextField(
@@ -112,12 +127,6 @@ class _HomePageState extends State<HomePage> {
                       maxLines: 1,
                       keyboardType: TextInputType.number,
                     ),
-                  ),
-                  RaisedButton(
-                    onPressed: () {
-                      _wheelNotifier.sink.add(_getVelocity());
-                    },
-                    child: Text('Start'),
                   ),
                 ],
               ),
@@ -131,10 +140,31 @@ class _HomePageState extends State<HomePage> {
   double _getVelocity() {
     int target = int.tryParse(_textEditingController.value.text) ?? 1;
     if (target < 1 || target > 10) target = 1;
-    print('hien ====> target: $target');
-    return target*6000.0;
-//    return _generateRandomVelocity();
+    _velocity = _generateRandomVelocity();
+    return _velocity;
   }
 
-  double _generateRandomVelocity() => (Random().nextDouble() * 1000) + 1000;
+  double _velocity = 0;
+
+  int _calculateResult() {
+    final motion = NonUniformCircularMotion(
+        resistance: _spinningController.spinResistance);
+    final v0 = _velocity;
+    final v = v0 / 2;
+    final iCV = pixelsPerSecondToRadians(v.abs());
+
+    double time = motion.duration(iCV);
+    final distance = motion.distance(iCV, time);
+    final modulo =
+        motion.modulo(distance + _spinningController.initialSpinAngle);
+
+    final dividerAngle = m_pi / 10;
+    final divider = 10 - (modulo ~/ dividerAngle);
+    print('hien ====> rs = $divider');
+    return 0;
+  }
+
+  double _generateRandomVelocity() => (Random().nextDouble() * 2000 + 2000);
 }
+
+const m_pi = 2 * pi;

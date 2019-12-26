@@ -11,6 +11,31 @@ import 'utils.dart';
 /// Required arguments are dimensions and the image to be used as the wheel.
 ///
 ///     SpinningWheel(Image.asset('assets/images/wheel-6-300.png'), width: 310, height: 310,)
+///
+
+class SpinningController {
+  /// initial rotation angle from 0.0 to 2*pi
+  /// default is 0.0
+  double initialSpinAngle;
+
+  /// number of equal divisions in the wheel
+  final int dividers;
+
+  // divider which is selected (positive y-coord)
+  int currentDivider;
+
+  /// has to be higher than 0.0 (no resistance) and lower or equal to 1.0
+  /// default is 0.5
+  final double spinResistance;
+
+  SpinningController({
+    this.initialSpinAngle = 0.0,
+    @required this.dividers,
+    this.spinResistance = 0.5,
+  })  : assert(spinResistance > 0.0 && spinResistance <= 1.0),
+        assert(initialSpinAngle >= 0.0 && initialSpinAngle <= (2 * pi));
+}
+
 class SpinningWheel extends StatefulWidget {
   /// width used by the container with the image
   final double width;
@@ -20,6 +45,9 @@ class SpinningWheel extends StatefulWidget {
 
   /// image that will be used as wheel
   final Widget backdrop;
+
+  /// controller to get it's attribute
+  final SpinningController controller;
 
   /// number of equal divisions in the wheel
   final int dividers;
@@ -64,8 +92,9 @@ class SpinningWheel extends StatefulWidget {
   /// the parameter is a double for pixelsPerSecond in axis Y, which defaults to 8000.0 as a medium-high velocity
   final Stream shouldStartOrStop;
 
-  SpinningWheel(
-    this.backdrop, {
+  SpinningWheel({
+    @required this.controller,
+    @required this.backdrop,
     @required this.width,
     @required this.height,
     @required this.dividers,
@@ -118,14 +147,14 @@ class _SpinningWheelState extends State<SpinningWheel>
   // current (circular) distance (angle) covered during the animation
   double _currentDistance = 0;
 
-  // initial spin angle when the wheels starts the animation
-  double _initialSpinAngle;
+//  // initial spin angle when the wheels starts the animation
+//  double widget.controller.initialSpinAngle;
 
   // spin angle when animation is stopped
   double _currentSpinAngle;
 
-  // dividider which is selected (positive y-coord)
-  int _currentDivider;
+//  // dividider which is selected (positive y-coord)
+//  int widget.controller.currentDivider;
 
   // spining backwards
   bool _isBackwards;
@@ -154,7 +183,7 @@ class _SpinningWheelState extends State<SpinningWheel>
         CurvedAnimation(parent: _animationController, curve: Curves.linear));
 
     _dividerAngle = _motion.anglePerDivision(widget.dividers);
-    _initialSpinAngle = widget.initialSpinAngle;
+    widget.controller.initialSpinAngle = widget.initialSpinAngle;
 
     _animation.addStatusListener((status) {
       // _animationStatus = status;
@@ -204,9 +233,10 @@ class _SpinningWheelState extends State<SpinningWheel>
                 child: Container(child: widget.backdrop),
                 builder: (context, child) {
                   _updateAnimationValues();
-                  widget.onUpdate(_currentDivider);
+                  widget.onUpdate(widget.controller.currentDivider);
                   return Transform.rotate(
-                    angle: _initialSpinAngle + _currentDistance,
+                    angle:
+                        widget.controller.initialSpinAngle + _currentDistance,
                     child: child,
                   );
                 }),
@@ -253,8 +283,9 @@ class _SpinningWheelState extends State<SpinningWheel>
       }
     }
     // calculate current divider selected
-    var modulo = _motion.modulo(_currentDistance + _initialSpinAngle);
-    _currentDivider = widget.dividers - (modulo ~/ _dividerAngle);
+    var modulo =
+        _motion.modulo(_currentDistance + widget.controller.initialSpinAngle);
+    widget.controller.currentDivider = widget.dividers - (modulo ~/ _dividerAngle);
     _currentSpinAngle = modulo;
     if (_animationController.isCompleted) {
       resetSpinAngle();
@@ -289,21 +320,21 @@ class _SpinningWheelState extends State<SpinningWheel>
   }
 
   void resetSpinAngle() {
-    _initialSpinAngle = _currentSpinAngle;
+    // save current spinAngle for next animation
+    widget.controller.initialSpinAngle = _currentSpinAngle;
     _currentDistance = 0;
     _panDelta = 0;
   }
 
   void _stopAnimation() {
     if (!_userCanInteract) return;
-    print('hien ====> distance: ${_currentDistance/pi}');
     resetSpinAngle();
 
     _offsetOutsideTimestamp = null;
     _animationController.stop();
     _animationController.reset();
 
-    widget.onEnd(_currentDivider);
+    widget.onEnd(widget.controller.currentDivider);
   }
 
   void _startAnimationOnPanEnd(DragEndDetails details) {
@@ -330,10 +361,6 @@ class _SpinningWheelState extends State<SpinningWheel>
     _isBackwards = velocity < 0;
     _initialCircularVelocity = pixelsPerSecondToRadians(velocity.abs());
     _totalDuration = _motion.duration(_initialCircularVelocity);
-    print('hien ====> pixelsPerSecond $pixelsPerSecond');
-    print('hien ====> velocity $velocity');
-    print('hien ====> _initialCircularVelocity $_initialCircularVelocity');
-    print('hien ====> _totalDuration ${(_totalDuration * 1000).round()}');
     _animationController.duration =
         Duration(milliseconds: (_totalDuration * 1000).round());
 
