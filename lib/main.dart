@@ -32,7 +32,8 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: RaisedButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (ctx) => HomePage()));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (ctx) => HomePage()));
           },
           child: Text('Quay'),
         ),
@@ -40,7 +41,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
 
 class HomePage extends StatefulWidget {
   @override
@@ -58,7 +58,9 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  double spinAngle = pi;
+  double spinAngle = pi / 2;
+  TextEditingController _textEditingController =
+      TextEditingController(text: '0');
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +79,9 @@ class _HomePageState extends State<HomePage> {
                   Image.asset('assets/images/wheel.png'),
                   width: 300,
                   height: 300,
-                  dividers: 8,
-                  initialSpinAngle: pi,
-                  spinResistance: 0.1,
+                  dividers: 10,
+                  initialSpinAngle: 0,
+                  spinResistance: 0.2,
                   onUpdate: (divider) {
 //                    print('hien ====> onUpdate');
 //                    _dividerController.add();
@@ -91,22 +93,33 @@ class _HomePageState extends State<HomePage> {
 //                    });
 //                    _dividerController.add;
                   },
-                  secondaryImage:
-                      Image.asset('assets/images/roulette-center-300.png'),
-                  secondaryImageWidth: 100,
-                  secondaryImageHeight: 100,
+                  cursor: Image.asset('assets/images/roulette-center-300.png'),
+                  cursorWidth: 100,
+                  cursorHeight: 100,
                   shouldStartOrStop: _wheelNotifier.stream,
                 ),
               ),
               Padding(
                 padding: EdgeInsets.all(10),
               ),
-              RaisedButton(
-                onPressed: () {
-//                  _wheelNotifier.sink.add(_generateRandomVelocity());
-                  _wheelNotifier.sink.add(1000);
-                },
-                child: Text('Start'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    width: 100,
+                    child: TextField(
+                      controller: _textEditingController,
+                      maxLines: 1,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  RaisedButton(
+                    onPressed: () {
+                      _wheelNotifier.sink.add(_getVelocity());
+                    },
+                    child: Text('Start'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -115,5 +128,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  double _generateRandomVelocity() => (Random().nextDouble() * 2000) + 2000;
+  double _getVelocity() {
+    int target = int.tryParse(_textEditingController.value.text) ?? 1;
+    if (target < 1 || target > 10) target = 1;
+    print('hien ====> target: $target');
+    return target*6000.0;
+//    return _generateRandomVelocity();
+  }
+
+  double _generateRandomVelocity() => (Random().nextDouble() * 1000) + 1000;
 }
