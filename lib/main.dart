@@ -97,7 +97,6 @@ class _HomePageState extends State<HomePage> {
                   cursor: Image.asset('assets/images/roulette-center-300.png'),
                   cursorWidth: 100,
                   cursorHeight: 100,
-                  shouldStartOrStop: _wheelNotifier.stream,
                 ),
               ),
               Padding(
@@ -108,8 +107,8 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   RaisedButton(
                     onPressed: () {
-                      _wheelNotifier.sink.add(_getVelocity());
-                      _calculateResult();
+                      _spinningController.run(_getVelocity());
+                      int rs = _spinningController.calculateResult();
                     },
                     child: Text('Start'),
                   ),
@@ -133,9 +132,9 @@ class _HomePageState extends State<HomePage> {
                       divider = divider > 0 && divider <= 10 ? divider : 1;
                       _textEditingController.text = '$divider';
                       print('hien ====> Target $divider');
-                      final velocity = _calculateVelocity(divider);
-                      _wheelNotifier.add(0);
-                      _wheelNotifier.add(velocity);
+                      final velocity = _spinningController.calculateVelocity(divider);
+                      print('hien ====> velocity $velocity');
+                      _spinningController.run(velocity);
                     },
                     child: Text('Cheat'),
                   ),
@@ -146,9 +145,26 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   RaisedButton(
                     onPressed: () {
-                      _wheelNotifier.sink.add(1000000);
+                      _spinningController.run(10000);
                     },
                     child: Text('Max Speed'),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  RaisedButton(
+                    onPressed: () {
+                      _spinningController.runSteady(6000);
+                    },
+                    child: Text('Run'),
+                  ),
+                  RaisedButton(
+                    onPressed: () {
+                      _spinningController.run(6000);
+                    },
+                    child: Text('Next'),
                   ),
                 ],
               ),
@@ -162,47 +178,8 @@ class _HomePageState extends State<HomePage> {
   double _getVelocity() {
     int target = int.tryParse(_textEditingController.value.text) ?? 1;
     if (target < 1 || target > 10) target = 1;
-    _velocity = _generateRandomVelocity();
-    return _velocity;
+    return _generateRandomVelocity();
   }
-
-  double _velocity = 0;
-
-  int _calculateResult() {
-    final motion = NonUniformCircularMotion(
-        resistance: _spinningController.spinResistance);
-    final v0 = _velocity;
-    final v = v0 / 2;
-    final iCV = pixelsPerSecondToRadians(v.abs());
-
-    double time = motion.duration(iCV);
-    final distance = motion.distance(iCV, time);
-
-    /// distance = (velocity * time) + (0.5 * acceleration * pow(time, 2))
-    final modulo =
-        motion.modulo(distance + _spinningController.initialSpinAngle);
-    // modulo = angle % m_pi;
-    final dividerAngle = pi_2 / _spinningController.dividers;
-    final divider = _spinningController.dividers - (modulo ~/ dividerAngle);
-    print('hien ====> rs = $divider');
-    return 0;
-  }
-
-  double _calculateVelocity(int divider) {
-    final motion = NonUniformCircularMotion(
-        resistance: _spinningController.spinResistance);
-    final dividerAngle = pi_2 / _spinningController.dividers;
-    final modulo = (_spinningController.dividers - divider) * dividerAngle +
-        dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
-
-    /// modulo = angle % m_pi;
-    /// => angle = n * m_pi + modulo
-    final angle = (Random().nextInt(100) % 5 + 5) * pi_2 + modulo;
-    final distance = angle - _spinningController.initialSpinAngle;
-    final iCV = motion.velocityByDistance(distance);
-    final velocity = 2 * radiansToPixelsPerSecond(iCV);
-    return velocity;
-  }
-
+  
   double _generateRandomVelocity() => (Random().nextDouble() * 2000 + 2000);
 }

@@ -14,7 +14,6 @@ const pi_0_5 = pi * 0.5;
 const pi_2_5 = pi * 2.5;
 const pi_2 = pi * 2;
 
-
 class SpinVelocity {
   final double height;
   final double width;
@@ -64,6 +63,9 @@ class NonUniformCircularMotion {
   /// 𝜑=𝜑0+𝜔·𝑡+1/2·𝛼·𝑡2
   distance(double velocity, double time) =>
       (velocity * time) + (0.5 * acceleration * pow(time, 2));
+
+  /// steady motion
+  steady(double velocity, double time) => velocity * time;
 
   /// movement duration with initial velocity
   duration(double velocity) => -velocity / acceleration;
