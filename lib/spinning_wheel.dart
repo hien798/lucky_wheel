@@ -49,8 +49,8 @@ class SpinningWheel extends StatefulWidget {
   /// controller to get it's attribute
   final SpinningController controller;
 
-  /// number of equal divisions in the wheel
-  final int dividers;
+//  /// number of equal divisions in the wheel
+//  final int dividers;
 
   /// initial rotation angle from 0.0 to 2*pi
   /// default is 0.0
@@ -97,7 +97,6 @@ class SpinningWheel extends StatefulWidget {
     @required this.backdrop,
     @required this.width,
     @required this.height,
-    @required this.dividers,
     this.initialSpinAngle: 0.0,
     this.spinResistance: 0.5,
     this.canInteractWhileSpinning: true,
@@ -182,7 +181,7 @@ class _SpinningWheelState extends State<SpinningWheel>
     _animation = Tween(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(parent: _animationController, curve: Curves.linear));
 
-    _dividerAngle = _motion.anglePerDivision(widget.dividers);
+    _dividerAngle = _motion.anglePerDivision(widget.controller.dividers);
     widget.controller.initialSpinAngle = widget.initialSpinAngle;
 
     _animation.addStatusListener((status) {
@@ -285,7 +284,7 @@ class _SpinningWheelState extends State<SpinningWheel>
     // calculate current divider selected
     var modulo =
         _motion.modulo(_currentDistance + widget.controller.initialSpinAngle);
-    widget.controller.currentDivider = widget.dividers - (modulo ~/ _dividerAngle);
+    widget.controller.currentDivider = widget.controller.dividers - (modulo ~/ _dividerAngle);
     _currentSpinAngle = modulo;
     if (_animationController.isCompleted) {
       resetSpinAngle();

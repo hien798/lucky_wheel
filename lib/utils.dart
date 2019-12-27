@@ -14,11 +14,13 @@ const pi_0_5 = pi * 0.5;
 const pi_2_5 = pi * 2.5;
 const pi_2 = pi * 2;
 
+
 class SpinVelocity {
   final double height;
   final double width;
 
   double get width_0_5 => width / 2;
+
   double get height_0_5 => height / 2;
 
   SpinVelocity({@required this.height, @required this.width});
@@ -71,6 +73,9 @@ class NonUniformCircularMotion {
 
   /// angle per division in a circunference with x dividers
   anglePerDivision(int dividers) => (2 * pi) / dividers;
+
+  velocityByDistance(double distance) =>
+      sqrt((2 * distance * acceleration).abs());
 }
 
 /// transforms pixels per second as used by Flutter to radians
@@ -78,4 +83,8 @@ class NonUniformCircularMotion {
 double pixelsPerSecondToRadians(double pps) {
   // 100 ppx will equal 2pi radians
   return (pps * 2 * pi) / 1000;
+}
+
+double radiansToPixelsPerSecond(double rad) {
+  return (rad * 1000) / (2 * pi);
 }
