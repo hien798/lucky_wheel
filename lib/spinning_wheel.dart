@@ -98,7 +98,7 @@ class SpinningController {
       final modulo = (divider) * dividerAngle -
           dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
 //      n = maxVelocity.abs() < 3000.0 ? 1 : 2;
-      n = maxVelocity.abs()~/1000;
+      n = maxVelocity.abs()~/1000 -1;
       final angle = n * pi_2 + modulo;
       final distance = angle + initialSpinAngle;
       /// iCV (velocity in rad):
@@ -111,7 +111,7 @@ class SpinningController {
       final modulo = (dividers - divider) * dividerAngle +
           dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
       if (maxVelocity != null) {
-        n = maxVelocity.abs()~/1000;
+        n = maxVelocity.abs()~/1000 -1;
       } else {
         n = Random().nextInt(100) % 5 + 5;
       }

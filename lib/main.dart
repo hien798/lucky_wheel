@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> {
                       _spinningController.run(velocity);
                       return;
                     }
-                    final velo = _spinningController.calculateVelocity(7, maxVelocity: velocity);
+                    final velo = _spinningController.calculateVelocity(8, maxVelocity: velocity);
                     Future.delayed(Duration(seconds: 3)).then((value) {
 
                       _spinningController.run(velo);
