@@ -90,10 +90,24 @@ class _HomePageState extends State<HomePage> {
                   backdrop: Image.asset('assets/images/wheel.png'),
                   width: 300,
                   height: 300,
+                  canInteractWhileSpinning: false,
                   initialSpinAngle: 0,
                   spinResistance: 0.2,
                   onUpdate: (divider) {},
                   onEnd: (divider) {},
+                  onPanEnd: (velocity) {
+                    print('hien ====> velocity pan end $velocity');
+                    if (velocity.abs() < 1000.0) {
+                      _spinningController.run(velocity);
+                      return;
+                    }
+                    final velo = _spinningController.calculateVelocity(7, maxVelocity: velocity);
+                    Future.delayed(Duration(seconds: 3)).then((value) {
+
+                      _spinningController.run(velo);
+                      int rs = _spinningController.calculateResult();
+                    });
+                  },
                   cursor: Image.asset('assets/images/roulette-center-300.png'),
                   cursorWidth: 100,
                   cursorHeight: 100,
@@ -131,10 +145,9 @@ class _HomePageState extends State<HomePage> {
                           int.tryParse(_textEditingController.value.text) ?? 5;
                       divider = divider > 0 && divider <= 10 ? divider : 1;
                       _textEditingController.text = '$divider';
-                      print('hien ====> Target $divider');
                       final velocity = _spinningController.calculateVelocity(divider);
-                      print('hien ====> velocity $velocity');
                       _spinningController.run(velocity);
+                      _spinningController.calculateResult();
                     },
                     child: Text('Cheat'),
                   ),
@@ -145,7 +158,8 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   RaisedButton(
                     onPressed: () {
-                      _spinningController.run(10000);
+                      _spinningController.run(-2000);
+                      _spinningController.calculateResult();
                     },
                     child: Text('Max Speed'),
                   ),
@@ -156,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   RaisedButton(
                     onPressed: () {
-                      _spinningController.runSteady(6000);
+                      _spinningController.run(6000);
                     },
                     child: Text('Run'),
                   ),

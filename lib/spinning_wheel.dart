@@ -31,6 +31,7 @@ class SpinningController {
   NonUniformCircularMotion _motion;
 
 //  NonUniformCircularMotion get motion => _motion;
+  final _spinningModel = _SpinningModel();
 
   SpinningController({
     this.initialSpinAngle = 0.0,
@@ -41,28 +42,38 @@ class SpinningController {
     _motion = NonUniformCircularMotion(resistance: spinResistance);
   }
 
-  final _wheelNotifier = StreamController<double>();
+  final _wheelNotifier = StreamController<_SpinningModel>();
 
   Stream get shouldStartOrStop => _wheelNotifier.stream;
 
-  void run(double velocity) {
-    _velocity = velocity.abs();
-    _wheelNotifier.sink.add(velocity.abs());
+  void run(double velocity, {bool isSteady = false}) {
+    _velocity = velocity;
+    _spinningModel.velocity = velocity;
+    _spinningModel.isSteady = isSteady;
+    _wheelNotifier.sink.add(_spinningModel);
   }
 
-  void runSteady(double velocity) {
-    _wheelNotifier.sink.add(-(velocity.abs()));
-  }
+//  void run(double velocity) {
+//    _velocity = velocity.abs();
+//    _wheelNotifier.sink.add(velocity.abs());
+//  }
+//
+//  void runSteady(double velocity) {
+//    _wheelNotifier.sink.add(-(velocity.abs()));
+//  }
 
   double _velocity = 0;
 
   int calculateResult() {
     final v0 = _velocity;
     final v = v0 / 2;
-    final iCV = pixelsPerSecondToRadians(v.abs());
+    final iCV = pixelsPerSecondToRadians(v);
 
-    double time = _motion.duration(iCV);
-    final distance = _motion.distance(iCV, time);
+    double time = _motion.duration(iCV.abs());
+    var distance = _motion.distance(iCV.abs(), time);
+    if (iCV < 0) {
+      distance = -distance;
+    }
 
     /// distance = (velocity * time) + (0.5 * acceleration * pow(time, 2))
     final modulo = _motion.modulo(distance + initialSpinAngle);
@@ -73,19 +84,53 @@ class SpinningController {
     return divider;
   }
 
-  double calculateVelocity(int divider) {
+  double calculateVelocity(int divider, {double maxVelocity}) {
+    print('hien ====> target $divider');
+
     final dividerAngle = pi_2 / dividers;
-    final modulo = (dividers - divider) * dividerAngle +
-        dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
 
     /// modulo = angle % m_pi;
     /// => angle = n * m_pi + modulo
-    final angle = (Random().nextInt(100) % 5 + 5) * pi_2 + modulo;
-    final distance = angle - initialSpinAngle;
-    final iCV = _motion.velocityByDistance(distance);
-    final velocity = 2 * radiansToPixelsPerSecond(iCV);
-    return velocity;
+
+    int n = 0;
+    if (maxVelocity != null && maxVelocity < 0) {
+      /// When spin backward
+      final modulo = (divider) * dividerAngle -
+          dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
+//      n = maxVelocity.abs() < 3000.0 ? 1 : 2;
+      n = maxVelocity.abs()~/1000;
+      final angle = n * pi_2 + modulo;
+      final distance = angle + initialSpinAngle;
+      /// iCV (velocity in rad):
+      /// iCV = √(2aS)
+      final iCV = _motion.velocityByDistance(distance);
+      var velocity = 2 * radiansToPixelsPerSecond(iCV);
+      return -velocity;
+    } else {
+      /// When spin forward
+      final modulo = (dividers - divider) * dividerAngle +
+          dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
+      if (maxVelocity != null) {
+        n = maxVelocity.abs()~/1000;
+      } else {
+        n = Random().nextInt(100) % 5 + 5;
+      }
+      final angle = n * pi_2 + modulo;
+      final distance = angle - initialSpinAngle;
+      /// iCV (velocity in rad):
+      /// iCV = √(2aS)
+      final iCV = _motion.velocityByDistance(distance);
+      var velocity = 2 * radiansToPixelsPerSecond(iCV);
+      return velocity;
+    }
   }
+}
+
+class _SpinningModel {
+  double velocity;
+  bool isSteady;
+
+  _SpinningModel({this.velocity = 0.0, this.isSteady = false});
 }
 
 class SpinningWheel extends StatefulWidget {
@@ -139,6 +184,9 @@ class SpinningWheel extends StatefulWidget {
   /// callback function to be executed when the animation stops
   final Function onEnd;
 
+  /// callback function when pan end
+  final Function onPanEnd;
+
   /// Stream<double> used to trigger an animation
   /// if triggered in an animation it will stop it, unless canInteractWhileSpinning is false
   /// the parameter is a double for pixelsPerSecond in axis Y, which defaults to 8000.0 as a medium-high velocity
@@ -159,6 +207,7 @@ class SpinningWheel extends StatefulWidget {
     this.cursorLeft,
     this.onUpdate,
     this.onEnd,
+    this.onPanEnd,
   })  : assert(width > 0.0 && height > 0.0),
         assert(spinResistance > 0.0 && spinResistance <= 1.0),
         assert(initialSpinAngle >= 0.0 && initialSpinAngle <= (2 * pi)),
@@ -247,18 +296,14 @@ class _SpinningWheelState extends State<SpinningWheel>
     }
   }
 
-  _startOrStop(dynamic velocity) {
-    if (velocity > 0.0) {
-      _isSteady = false;
-      var pixelsPerSecondY = velocity ?? 8000.0;
-      _localPositionOnPanUpdate = Offset(250.0, 250.0);
-      _startAnimation(Offset(0.0, pixelsPerSecondY));
-    } else {
-      _isSteady = true;
-      var pixelsPerSecondY = velocity.abs() ?? 8000.0;
-      _localPositionOnPanUpdate = Offset(250.0, 250.0);
-      _startAnimation(Offset(0.0, pixelsPerSecondY));
-    }
+  _startOrStop(dynamic spinModel) {
+    _SpinningModel model = spinModel;
+    if (model == null) return;
+    _isSteady = false;
+    var pixelsPerSecondY = model.velocity ?? 8000.0;
+    _localPositionOnPanUpdate = Offset(250.0, 250.0);
+    _startAnimation(Offset(0.0, pixelsPerSecondY));
+    _isSteady = model.isSteady;
 
 //    if (_animationController.isAnimating) {
 //      _stopAnimation();
@@ -297,7 +342,9 @@ class _SpinningWheelState extends State<SpinningWheel>
                 child: Container(child: widget.backdrop),
                 builder: (context, child) {
                   _updateAnimationValues();
-                  widget.onUpdate(widget.controller.currentDivider);
+                  if (widget.onUpdate != null) {
+                    widget.onUpdate(widget.controller.currentDivider);
+                  }
                   return Transform.rotate(
                     angle:
                         widget.controller.initialSpinAngle + _currentDistance,
@@ -392,7 +439,6 @@ class _SpinningWheelState extends State<SpinningWheel>
   }
 
   void resetSpinAngle() {
-    print('hien ====> _currentDistance $_currentDistance');
     // save current spinAngle for next animation
     widget.controller.initialSpinAngle = _currentSpinAngle;
     _currentDistance = 0;
@@ -407,7 +453,9 @@ class _SpinningWheelState extends State<SpinningWheel>
     _animationController.stop();
     _animationController.reset();
 
-    widget.onEnd(widget.controller.currentDivider);
+    if (widget.onEnd != null) {
+      widget.onEnd(widget.controller.currentDivider);
+    }
   }
 
   void _startAnimationOnPanEnd(DragEndDetails details) {
@@ -423,7 +471,20 @@ class _SpinningWheelState extends State<SpinningWheel>
     // it was the user just taping to stop the animation
     if (_localPositionOnPanUpdate == null) return;
 
+    _isSteady = true;
+    final localPosition = _localPositionOnPanUpdate;
     _startAnimation(details.velocity.pixelsPerSecond);
+    if (widget.onPanEnd != null) {
+      var velocity = _spinVelocity.getVelocity(
+          localPosition, details.velocity.pixelsPerSecond);
+//      final sign = velocity < 0 ? -1 : 1;
+//      if (velocity.abs() < 1500.0) {
+//        velocity = 1000.0*sign;
+//      } else {
+//        velocity = 1500.0*sign;
+//      }
+      widget.onPanEnd(2 * velocity);
+    }
   }
 
   void _startAnimation(Offset pixelsPerSecond) {
