@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:lucky_wheel/spinning_wheel.dart';
-import 'package:lucky_wheel/utils.dart';
 
 void main() => runApp(MyApp());
 
@@ -101,9 +100,9 @@ class _HomePageState extends State<HomePage> {
                       _spinningController.run(velocity);
                       return;
                     }
-                    final velo = _spinningController.calculateVelocity(8, maxVelocity: velocity);
+                    final velo = _spinningController.calculateVelocity(8,
+                        maxVelocity: velocity);
                     Future.delayed(Duration(seconds: 3)).then((value) {
-
                       _spinningController.run(velo);
                       int rs = _spinningController.calculateResult();
                     });
@@ -145,9 +144,13 @@ class _HomePageState extends State<HomePage> {
                           int.tryParse(_textEditingController.value.text) ?? 5;
                       divider = divider > 0 && divider <= 10 ? divider : 1;
                       _textEditingController.text = '$divider';
-                      final velocity = _spinningController.calculateVelocity(divider);
-                      _spinningController.run(velocity);
-                      _spinningController.calculateResult();
+                      final velocity =
+                          _spinningController.calculateVelocity(divider);
+                      _spinningController.run(velocity, isSteady: true);
+                      Future.delayed(Duration(seconds: 3)).then((value) {
+                        _spinningController.run(velocity);
+                        _spinningController.calculateResult();
+                      });
                     },
                     child: Text('Cheat'),
                   ),
@@ -194,6 +197,6 @@ class _HomePageState extends State<HomePage> {
     if (target < 1 || target > 10) target = 1;
     return _generateRandomVelocity();
   }
-  
+
   double _generateRandomVelocity() => (Random().nextDouble() * 2000 + 2000);
 }
