@@ -48,6 +48,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _wheelNotifier = StreamController<double>();
   final StreamController _dividerController = StreamController<int>();
 
@@ -74,6 +75,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Lucky Wheel'),
       ),
@@ -98,6 +100,10 @@ class _HomePageState extends State<HomePage> {
                     print('hien ====> velocity pan end $velocity');
                     if (velocity.abs() < 1000.0) {
                       _spinningController.run(velocity);
+                      _scaffoldKey.currentState.showSnackBar(SnackBar(
+                        content: Text('Quay mạnh lên bạn '),
+                        duration: Duration(milliseconds: 500),
+                      ));
                       return;
                     }
                     final velo = _spinningController.calculateVelocity(8,
