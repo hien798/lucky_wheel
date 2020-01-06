@@ -55,14 +55,14 @@ class _HomePageState extends State<HomePage> {
   double spinAngle = pi / 2;
   TextEditingController _textEditingController;
   SpinningController _spinningController;
-  final dividers = 10;
+  final dividers = 6;
 
   @override
   void initState() {
     super.initState();
-    _textEditingController = TextEditingController(text: '7');
+    _textEditingController = TextEditingController(text: '4');
     _spinningController = SpinningController(
-        dividers: dividers, initialSpinAngle: 0, spinResistance: 0.2);
+        dividers: dividers, initialSpinAngle: 0, spinResistance: 0.125);
   }
 
   @override
@@ -71,6 +71,8 @@ class _HomePageState extends State<HomePage> {
     _wheelNotifier.close();
     super.dispose();
   }
+
+  DateTime time = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -88,14 +90,17 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.blue,
                 child: SpinningWheel(
                   controller: _spinningController,
-                  backdrop: Image.asset('assets/images/wheel.png'),
+                  backdrop: Image.asset('assets/images/achero.png'),
                   width: 300,
                   height: 300,
                   canInteractWhileSpinning: false,
                   initialSpinAngle: 0,
-                  spinResistance: 0.2,
+                  spinResistance: 0.9,
                   onUpdate: (divider) {},
-                  onEnd: (divider) {},
+                  onEnd: (divider) {
+                    DateTime now = DateTime.now();
+                    print('hien ===> delta: ${now.difference(time)}');
+                  },
                   onPanEnd: (velocity) {
                     print('hien ====> velocity pan end $velocity');
                     if (velocity.abs() < 1000.0) {
@@ -126,7 +131,10 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   RaisedButton(
                     onPressed: () {
-                      _spinningController.run(_getVelocity());
+//                      _spinningController.run(_getVelocity());
+                      _spinningController.run(4500);
+                      /// TODO Range velocity from 3500 -> 4500 with resistance 0.125 is really coming real
+                      time = DateTime.now();
                       int rs = _spinningController.calculateResult();
                     },
                     child: Text('Start'),
@@ -153,7 +161,8 @@ class _HomePageState extends State<HomePage> {
                       final velocity =
                           _spinningController.calculateVelocity(divider);
                       _spinningController.run(velocity, isSteady: true);
-                      Future.delayed(Duration(seconds: 3)).then((value) {
+                      time = DateTime.now();
+                      Future.delayed(Duration(seconds: 1)).then((value) {
                         _spinningController.run(velocity);
                         _spinningController.calculateResult();
                       });
