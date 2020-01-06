@@ -94,8 +94,6 @@ class _HomePageState extends State<HomePage> {
                   width: 300,
                   height: 300,
                   canInteractWhileSpinning: false,
-                  initialSpinAngle: 0,
-                  spinResistance: 0.9,
                   onUpdate: (divider) {},
                   onEnd: (divider) {
                     DateTime now = DateTime.now();

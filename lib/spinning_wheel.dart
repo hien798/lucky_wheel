@@ -151,11 +151,11 @@ class SpinningWheel extends StatefulWidget {
 
   /// initial rotation angle from 0.0 to 2*pi
   /// default is 0.0
-  final double initialSpinAngle;
+//  final double initialSpinAngle;
 
   /// has to be higher than 0.0 (no resistance) and lower or equal to 1.0
   /// default is 0.5
-  final double spinResistance;
+//  final double spinResistance;
 
   /// if true, the user can interact with the wheel while it spins
   /// default is true
@@ -197,8 +197,8 @@ class SpinningWheel extends StatefulWidget {
     @required this.backdrop,
     @required this.width,
     @required this.height,
-    this.initialSpinAngle: 0.0,
-    this.spinResistance: 0.5,
+//    this.initialSpinAngle: 0.0,
+//    this.spinResistance: 0.5,
     this.canInteractWhileSpinning: true,
     this.cursor,
     this.cursorHeight,
@@ -209,8 +209,8 @@ class SpinningWheel extends StatefulWidget {
     this.onEnd,
     this.onPanEnd,
   })  : assert(width > 0.0 && height > 0.0),
-        assert(spinResistance > 0.0 && spinResistance <= 1.0),
-        assert(initialSpinAngle >= 0.0 && initialSpinAngle <= (2 * pi)),
+//        assert(spinResistance > 0.0 && spinResistance <= 1.0),
+//        assert(initialSpinAngle >= 0.0 && initialSpinAngle <= (2 * pi)),
         assert(
             cursor == null || (cursorHeight <= height && cursorWidth <= width));
 
@@ -284,7 +284,7 @@ class _SpinningWheelState extends State<SpinningWheel>
         CurvedAnimation(parent: _animationController, curve: Curves.linear));
 
     _dividerAngle = _motion.anglePerDivision(widget.controller.dividers);
-    widget.controller.initialSpinAngle = widget.initialSpinAngle;
+//    widget.controller.initialSpinAngle = widget.initialSpinAngle;
 
     _animation.addStatusListener((status) {
       // _animationStatus = status;
