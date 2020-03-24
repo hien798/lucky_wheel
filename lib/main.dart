@@ -91,7 +91,9 @@ class _HomePageState extends State<HomePage> {
     }
     _textEditingController = TextEditingController(text: '4');
     _spinningController = SpinningController(
-        dividers: _dataSource.length, initialSpinAngle: 0, spinResistance: 0.125);
+        dividers: _dataSource.length,
+        initialSpinAngle: 0,
+        spinResistance: 0.125);
   }
 
   @override
@@ -122,7 +124,8 @@ class _HomePageState extends State<HomePage> {
 //                  backdrop: Image.asset('assets/images/wheel.png'),
                   backdrop: WheelBackdrop(
                     dataSource: _dataSource,
-                    backdrop: Image.asset('assets/images/backdrop_empty_index.png'),
+                    backdrop:
+                        Image.asset('assets/images/backdrop_empty_index.png'),
                   ),
 //                  cursorLeft: 200,
 //                  cursorTop: 200,
@@ -145,11 +148,15 @@ class _HomePageState extends State<HomePage> {
                       ));
                       return;
                     }
-                    final velo = _spinningController.calculateVelocity(Random().nextInt(8),
+                    final velo = _spinningController.calculateVelocity(
+                        Random().nextInt(8),
                         maxVelocity: velocity);
                     Future.delayed(Duration(seconds: 3)).then((value) {
                       _spinningController.run(velo);
                       int rs = _spinningController.calculateResult();
+                      setState(() {
+                        result = '$rs';
+                      });
                     });
                   },
                   cursor: Image.asset('assets/images/cursor_right.png'),
@@ -157,12 +164,13 @@ class _HomePageState extends State<HomePage> {
                   cursorHeight: 100,
                 ),
               ),
-//              Padding(
-//                padding: EdgeInsets.all(10),
-//              ),
               Expanded(
                 child: Column(
                   children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Text('Kết quả: $result'),
+                    ),
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -183,8 +191,6 @@ class _HomePageState extends State<HomePage> {
                             },
                             child: Text('Random'),
                           ),
-                          SizedBox(width: 10),
-                          Text('Kết quả: $result',),
                         ],
                       ),
                     ),
@@ -217,7 +223,6 @@ class _HomePageState extends State<HomePage> {
 //                          ),
                           RaisedButton(
                             onPressed: () {
-
                               var divider = _dataSource.indexOf(_dropdownValue);
                               if (divider < 0) {
                                 return;
@@ -244,39 +249,39 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          RaisedButton(
-                            onPressed: () {
-                              _spinningController.run(-2000);
-                              _spinningController.calculateResult();
-                            },
-                            child: Text('Max Speed'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          RaisedButton(
-                            onPressed: () {
-                              _spinningController.run(6000);
-                            },
-                            child: Text('Run'),
-                          ),
-                          RaisedButton(
-                            onPressed: () {
-                              _spinningController.run(6000);
-                            },
-                            child: Text('Next'),
-                          ),
-                        ],
-                      ),
-                    ),
+//                    Expanded(
+//                      child: Row(
+//                        mainAxisAlignment: MainAxisAlignment.center,
+//                        children: <Widget>[
+//                          RaisedButton(
+//                            onPressed: () {
+//                              _spinningController.run(-3000);
+//                              _spinningController.calculateResult();
+//                            },
+//                            child: Text('Max Speed'),
+//                          ),
+//                        ],
+//                      ),
+//                    ),
+//                    Expanded(
+//                      child: Row(
+//                        mainAxisAlignment: MainAxisAlignment.center,
+//                        children: <Widget>[
+//                          RaisedButton(
+//                            onPressed: () {
+//                              _spinningController.run(6000);
+//                            },
+//                            child: Text('Run'),
+//                          ),
+//                          RaisedButton(
+//                            onPressed: () {
+//                              _spinningController.run(6000);
+//                            },
+//                            child: Text('Next'),
+//                          ),
+//                        ],
+//                      ),
+//                    ),
                   ],
                 ),
               ),
