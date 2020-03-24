@@ -81,6 +81,7 @@ class _HomePageState extends State<HomePage> {
     '1đ'
   ];
   String _dropdownValue = 'None';
+  String result = '';
 
   @override
   void initState() {
@@ -176,9 +177,14 @@ class _HomePageState extends State<HomePage> {
                               /// TODO Range velocity from 3500 -> 4500 with resistance 0.125 is really coming real
                               time = DateTime.now();
                               int rs = _spinningController.calculateResult();
+                              setState(() {
+                                result = '$rs';
+                              });
                             },
                             child: Text('Random'),
                           ),
+                          SizedBox(width: 10),
+                          Text('Kết quả: $result',),
                         ],
                       ),
                     ),
