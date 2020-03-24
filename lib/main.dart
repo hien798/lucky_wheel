@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:lucky_wheel/spinning_wheel.dart';
+import 'package:lucky_wheel/wheel_backdrop.dart';
 
 void main() => runApp(MyApp());
 
@@ -30,12 +31,26 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: RaisedButton(
-          onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (ctx) => HomePage()));
-          },
-          child: Text('Quay'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            RaisedButton(
+              onPressed: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (ctx) => HomePage()));
+              },
+              child: Text('Quay'),
+            ),
+            RaisedButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (ctx) => WheelBackdropExample()));
+              },
+              child: Text('Backdrop'),
+            ),
+          ],
         ),
       ),
     );
@@ -55,14 +70,27 @@ class _HomePageState extends State<HomePage> {
   double spinAngle = pi / 2;
   TextEditingController _textEditingController;
   SpinningController _spinningController;
-  final dividers = 6;
+  final _dataSource = [
+    '1Tr',
+    '200k',
+    '100k',
+    '500k',
+    '1Tr5',
+    'GOOD LUCK',
+    '300k',
+    '1đ'
+  ];
+  String _dropdownValue = 'None';
 
   @override
   void initState() {
     super.initState();
+    if (_dataSource.length > 0) {
+      _dropdownValue = _dataSource.first;
+    }
     _textEditingController = TextEditingController(text: '4');
     _spinningController = SpinningController(
-        dividers: dividers, initialSpinAngle: 0, spinResistance: 0.125);
+        dividers: _dataSource.length, initialSpinAngle: 0, spinResistance: 0.125);
   }
 
   @override
@@ -84,24 +112,31 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Container(
                 color: Colors.blue,
+                alignment: Alignment.center,
                 child: SpinningWheel(
                   controller: _spinningController,
-                  backdrop: Image.asset('assets/images/achero.png'),
+//                  backdrop: Image.asset('assets/images/wheel.png'),
+                  backdrop: WheelBackdrop(
+                    dataSource: _dataSource,
+                    backdrop: Image.asset('assets/images/backdrop_empty_index.png'),
+                  ),
+//                  cursorLeft: 200,
+//                  cursorTop: 200,
                   width: 300,
                   height: 300,
                   canInteractWhileSpinning: false,
                   onUpdate: (divider) {},
                   onEnd: (divider) {
                     DateTime now = DateTime.now();
-                    print('hien ===> delta: ${now.difference(time)}');
+                    print(
+                        'hien ===> delta: ${now.difference(time)}, at $divider');
                   },
                   onPanEnd: (velocity) {
                     print('hien ====> velocity pan end $velocity');
-                    if (velocity.abs() < 1000.0) {
+                    if (velocity.abs() < 3000.0) {
                       _spinningController.run(velocity);
                       _scaffoldKey.currentState.showSnackBar(SnackBar(
                         content: Text('Quay mạnh lên bạn '),
@@ -109,94 +144,135 @@ class _HomePageState extends State<HomePage> {
                       ));
                       return;
                     }
-                    final velo = _spinningController.calculateVelocity(8,
+                    final velo = _spinningController.calculateVelocity(Random().nextInt(8),
                         maxVelocity: velocity);
                     Future.delayed(Duration(seconds: 3)).then((value) {
                       _spinningController.run(velo);
                       int rs = _spinningController.calculateResult();
                     });
                   },
-                  cursor: Image.asset('assets/images/roulette-center-300.png'),
+                  cursor: Image.asset('assets/images/cursor_right.png'),
                   cursorWidth: 100,
                   cursorHeight: 100,
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(10),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () {
+//              Padding(
+//                padding: EdgeInsets.all(10),
+//              ),
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          RaisedButton(
+                            onPressed: () {
 //                      _spinningController.run(_getVelocity());
-                      _spinningController.run(4500);
-                      /// TODO Range velocity from 3500 -> 4500 with resistance 0.125 is really coming real
-                      time = DateTime.now();
-                      int rs = _spinningController.calculateResult();
-                    },
-                    child: Text('Start'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    width: 100,
-                    child: TextField(
-                      controller: _textEditingController,
-                      maxLines: 1,
-                      keyboardType: TextInputType.number,
+                              _spinningController.run(3500 +
+                                  (DateTime.now().millisecondsSinceEpoch % 3500)
+                                      .toDouble());
+
+                              /// TODO Range velocity from 3500 -> 4500 with resistance 0.125 is really coming real
+                              time = DateTime.now();
+                              int rs = _spinningController.calculateResult();
+                            },
+                            child: Text('Random'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  RaisedButton(
-                    onPressed: () {
-                      int divider =
-                          int.tryParse(_textEditingController.value.text) ?? 5;
-                      divider = divider > 0 && divider <= 10 ? divider : 1;
-                      _textEditingController.text = '$divider';
-                      final velocity =
-                          _spinningController.calculateVelocity(divider);
-                      _spinningController.run(velocity, isSteady: true);
-                      time = DateTime.now();
-                      Future.delayed(Duration(seconds: 1)).then((value) {
-                        _spinningController.run(velocity);
-                        _spinningController.calculateResult();
-                      });
-                    },
-                    child: Text('Cheat'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () {
-                      _spinningController.run(-2000);
-                      _spinningController.calculateResult();
-                    },
-                    child: Text('Max Speed'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () {
-                      _spinningController.run(6000);
-                    },
-                    child: Text('Run'),
-                  ),
-                  RaisedButton(
-                    onPressed: () {
-                      _spinningController.run(6000);
-                    },
-                    child: Text('Next'),
-                  ),
-                ],
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          DropdownButton<String>(
+                            value: _dropdownValue,
+                            icon: Icon(Icons.arrow_drop_down),
+                            onChanged: (newValue) {
+                              setState(() {
+                                _dropdownValue = newValue;
+                              });
+                            },
+                            items: _dataSource
+                                .map((value) => DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    ))
+                                .toList(),
+                          ),
+//                          Container(
+//                            width: 100,
+//                            child: TextField(
+//                              controller: _textEditingController,
+//                              maxLines: 1,
+//                              keyboardType: TextInputType.number,
+//                            ),
+//                          ),
+                          RaisedButton(
+                            onPressed: () {
+
+                              var divider = _dataSource.indexOf(_dropdownValue);
+                              if (divider < 0) {
+                                return;
+                              }
+
+//                              int divider = int.tryParse(
+//                                      _textEditingController.value.text) ??
+//                                  5;
+//                              divider =
+//                                  divider > 0 && divider <= 10 ? divider : 1;
+//                              _textEditingController.text = '$divider';
+                              final velocity = _spinningController
+                                  .calculateVelocity(divider);
+                              _spinningController.run(velocity, isSteady: true);
+                              time = DateTime.now();
+                              Future.delayed(Duration(seconds: 1))
+                                  .then((value) {
+                                _spinningController.run(velocity);
+                                _spinningController.calculateResult();
+                              });
+                            },
+                            child: Text('Cheat'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          RaisedButton(
+                            onPressed: () {
+                              _spinningController.run(-2000);
+                              _spinningController.calculateResult();
+                            },
+                            child: Text('Max Speed'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          RaisedButton(
+                            onPressed: () {
+                              _spinningController.run(6000);
+                            },
+                            child: Text('Run'),
+                          ),
+                          RaisedButton(
+                            onPressed: () {
+                              _spinningController.run(6000);
+                            },
+                            child: Text('Next'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

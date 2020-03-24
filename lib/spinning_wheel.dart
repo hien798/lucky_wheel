@@ -79,7 +79,10 @@ class SpinningController {
     final modulo = _motion.modulo(distance + initialSpinAngle);
     // modulo = angle % m_pi;
     final dividerAngle = pi_2 / dividers;
-    final divider = dividers - (modulo ~/ dividerAngle);
+
+    var divider = dividers - ((modulo + pi/dividers) ~/ dividerAngle);
+    divider = divider < dividers ? divider : 0;
+
     print('hien ====> rs = $divider');
     return divider;
   }
@@ -93,14 +96,15 @@ class SpinningController {
     /// => angle = n * m_pi + modulo
 
     int n = 0;
+    final padding = dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
     if (maxVelocity != null && maxVelocity < 0) {
       /// When spin backward
-      final modulo = (divider) * dividerAngle -
-          dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
+      final modulo = (divider) * dividerAngle - padding + pi/dividers;
 //      n = maxVelocity.abs() < 3000.0 ? 1 : 2;
-      n = maxVelocity.abs()~/1000 -1;
+      n = maxVelocity.abs() ~/ 1000 - 1;
       final angle = n * pi_2 + modulo;
       final distance = angle + initialSpinAngle;
+
       /// iCV (velocity in rad):
       /// iCV = √(2aS)
       final iCV = _motion.velocityByDistance(distance);
@@ -108,15 +112,15 @@ class SpinningController {
       return -velocity;
     } else {
       /// When spin forward
-      final modulo = (dividers - divider) * dividerAngle +
-          dividerAngle * (Random().nextInt(100) % 90 + 5) / 100;
+      final modulo = (dividers - divider) * dividerAngle + padding - pi/dividers;
       if (maxVelocity != null) {
-        n = maxVelocity.abs()~/1000 -1;
+        n = maxVelocity.abs() ~/ 1000 - 1;
       } else {
         n = Random().nextInt(100) % 5 + 5;
       }
       final angle = n * pi_2 + modulo;
       final distance = angle - initialSpinAngle;
+
       /// iCV (velocity in rad):
       /// iCV = √(2aS)
       final iCV = _motion.velocityByDistance(distance);
@@ -348,6 +352,7 @@ class _SpinningWheelState extends State<SpinningWheel>
                   return Transform.rotate(
                     angle:
                         widget.controller.initialSpinAngle + _currentDistance,
+//                    angle: 0,
                     child: child,
                   );
                 }),
@@ -403,8 +408,8 @@ class _SpinningWheelState extends State<SpinningWheel>
     // calculate current divider selected
     var modulo =
         _motion.modulo(_currentDistance + widget.controller.initialSpinAngle);
-    widget.controller.currentDivider =
-        widget.controller.dividers - (modulo ~/ _dividerAngle);
+    var divider = widget.controller.dividers - ((modulo + pi / widget.controller.dividers) ~/ _dividerAngle);
+    widget.controller.currentDivider = divider < widget.controller.dividers ? divider : 0;
     _currentSpinAngle = modulo;
     if (_animationController.isCompleted) {
       resetSpinAngle();
