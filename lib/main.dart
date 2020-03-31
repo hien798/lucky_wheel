@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage>
                   _scrollController.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.linear);
                 });
               }
-              if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
+              if (_scrollController.position.userScrollDirection == ScrollDirection.reverse && _scrollController.offset < height) {
                 Future.delayed(Duration(microseconds: 0)).then((s) {
                   _scrollController.animateTo(height, duration: Duration(milliseconds: 300), curve: Curves.linear);
                 });
