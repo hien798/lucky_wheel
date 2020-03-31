@@ -338,9 +338,15 @@ class _SpinningWheelState extends State<SpinningWheel>
       child: Stack(
         children: [
           GestureDetector(
-            onPanUpdate: _moveWheel,
-            onPanEnd: _startAnimationOnPanEnd,
-            onPanDown: (_details) => _stopAnimation(),
+//            onPanUpdate: _moveWheel,
+//            onPanEnd: _startAnimationOnPanEnd,
+//            onPanDown: (_details) => _stopAnimation(),
+            onVerticalDragUpdate: _moveWheel,
+            onVerticalDragEnd: _startAnimationOnPanEnd,
+            onVerticalDragDown: (_) => _stopAnimation(),
+            onHorizontalDragUpdate: _moveWheel,
+            onHorizontalDragEnd: _startAnimationOnPanEnd,
+            onHorizontalDragDown: (_) => _stopAnimation(),
             child: AnimatedBuilder(
                 animation: _animation,
                 child: Container(child: widget.backdrop),
