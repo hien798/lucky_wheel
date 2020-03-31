@@ -133,16 +133,16 @@ class _HomePageState extends State<HomePage>
           onNotification: (scrollState) {
             if (scrollState is ScrollStartNotification &&
                 scrollState.metrics.axis == Axis.vertical &&
-                scrollState.depth == 0 && _scrollController.offset < height) {
+                scrollState.depth == 0 && _scrollController.offset <= height) {
               if (scrollState.dragDetails != null) {
                 _isDrag = true;
               }
             }
+
             if (scrollState is ScrollEndNotification &&
                 scrollState.metrics.axis == Axis.vertical &&
-                scrollState.depth == 0 && _isDrag && _scrollController.offset < height) {
+                scrollState.depth == 0 && _isDrag && _scrollController.offset <= height) {
               _isDrag = false;
-              print('HIEN ===> axisDirection ${_scrollController.position.userScrollDirection}');
               if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
                 Future.delayed(Duration(microseconds: 0)).then((s) {
                   _scrollController.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.linear);
@@ -154,31 +154,6 @@ class _HomePageState extends State<HomePage>
                 });
               }
             }
-
-//            if (scrollState is ScrollEndNotification &&
-//                scrollState.metrics.axis == Axis.vertical &&
-//                _scrollController.offset < height &&
-//                scrollState.depth == 0 &&
-//                _isDrag) {
-//              _isDrag = false;
-//              print('HIEN ===> scroll end');
-//              if (scrollState.metrics.axisDirection == AxisDirection.down) {
-//                print('HIEN ===> AxisDirection.down');
-//                Future.delayed(Duration(milliseconds: 500)).then((s) {
-//                  _scrollController.animateTo(height,
-//                      duration: Duration(seconds: 1),
-//                      curve: Curves.linearToEaseOut);
-//                });
-//              } else if (scrollState.metrics.axisDirection ==
-//                  AxisDirection.up) {
-//                print('HIEN ===> AxisDirection.up');
-//                Future.delayed(Duration(milliseconds: 500)).then((s) {
-//                  _scrollController.animateTo(0,
-//                      duration: Duration(seconds: 1),
-//                      curve: Curves.linearToEaseOut);
-//                });
-//              }
-//            }
             return false;
           },
           child: NestedScrollView(
