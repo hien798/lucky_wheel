@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:lucky_wheel/spinning_wheel.dart';
 import 'package:lucky_wheel/wheel_backdrop.dart';
 
@@ -87,6 +88,8 @@ class _HomePageState extends State<HomePage>
   TabController _tabController;
   ScrollController _scrollController;
 
+  final _kTabBarHeight = 44.0;
+
   @override
   void initState() {
     super.initState();
@@ -110,6 +113,7 @@ class _HomePageState extends State<HomePage>
   }
 
   DateTime time = DateTime.now();
+  bool _isDrag = false;
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +121,7 @@ class _HomePageState extends State<HomePage>
     final height = query.size.height -
         query.padding.top -
         query.padding.bottom -
-        2 * kToolbarHeight;
+        kToolbarHeight - _kTabBarHeight - 4.0;
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -127,19 +131,51 @@ class _HomePageState extends State<HomePage>
       body: SafeArea(
         child: NotificationListener<ScrollNotification>(
           onNotification: (scrollState) {
-            if (scrollState is ScrollEndNotification && scrollState.metrics.axis == Axis.vertical && scrollState.depth == 0) {
-              print('HIEN ===> onNotification ${scrollState.metrics.pixels}');
+            if (scrollState is ScrollStartNotification &&
+                scrollState.metrics.axis == Axis.vertical &&
+                scrollState.depth == 0 && _scrollController.offset < height) {
+              if (scrollState.dragDetails != null) {
+                _isDrag = true;
+              }
             }
-//            if (scrollState is ScrollEndNotification && scrollState.metrics.axis == Axis.vertical && _scrollController.offset < height) {
+            if (scrollState is ScrollEndNotification &&
+                scrollState.metrics.axis == Axis.vertical &&
+                scrollState.depth == 0 && _isDrag && _scrollController.offset < height) {
+              _isDrag = false;
+              print('HIEN ===> axisDirection ${_scrollController.position.userScrollDirection}');
+              if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
+                Future.delayed(Duration(microseconds: 0)).then((s) {
+                  _scrollController.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.linear);
+                });
+              }
+              if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
+                Future.delayed(Duration(microseconds: 0)).then((s) {
+                  _scrollController.animateTo(height, duration: Duration(milliseconds: 300), curve: Curves.linear);
+                });
+              }
+            }
+
+//            if (scrollState is ScrollEndNotification &&
+//                scrollState.metrics.axis == Axis.vertical &&
+//                _scrollController.offset < height &&
+//                scrollState.depth == 0 &&
+//                _isDrag) {
+//              _isDrag = false;
+//              print('HIEN ===> scroll end');
 //              if (scrollState.metrics.axisDirection == AxisDirection.down) {
 //                print('HIEN ===> AxisDirection.down');
 //                Future.delayed(Duration(milliseconds: 500)).then((s) {
-//                  _scrollController.animateTo(height, duration: Duration(seconds: 1), curve: Curves.linearToEaseOut);
+//                  _scrollController.animateTo(height,
+//                      duration: Duration(seconds: 1),
+//                      curve: Curves.linearToEaseOut);
 //                });
-//              } else if (scrollState.metrics.axisDirection == AxisDirection.up) {
+//              } else if (scrollState.metrics.axisDirection ==
+//                  AxisDirection.up) {
 //                print('HIEN ===> AxisDirection.up');
 //                Future.delayed(Duration(milliseconds: 500)).then((s) {
-//                  _scrollController.animateTo(0, duration: Duration(seconds: 1), curve: Curves.linearToEaseOut);
+//                  _scrollController.animateTo(0,
+//                      duration: Duration(seconds: 1),
+//                      curve: Curves.linearToEaseOut);
 //                });
 //              }
 //            }
@@ -189,10 +225,11 @@ class _HomePageState extends State<HomePage>
                                 ));
                                 return;
                               }
-                              final velo = _spinningController.calculateVelocity(
-                                  Random().nextInt(8),
-                                  maxVelocity: velocity);
-                              Future.delayed(Duration(seconds: 3)).then((value) {
+                              final velo = _spinningController
+                                  .calculateVelocity(Random().nextInt(8),
+                                      maxVelocity: velocity);
+                              Future.delayed(Duration(seconds: 3))
+                                  .then((value) {
                                 _spinningController.run(velo);
                                 int rs = _spinningController.calculateResult();
                                 setState(() {
@@ -200,7 +237,8 @@ class _HomePageState extends State<HomePage>
                                 });
                               });
                             },
-                            cursor: Image.asset('assets/images/cursor_right.png'),
+                            cursor:
+                                Image.asset('assets/images/cursor_right.png'),
                             cursorWidth: 100,
                             cursorHeight: 100,
                           ),
@@ -229,8 +267,8 @@ class _HomePageState extends State<HomePage>
 
                                         /// TODO Range velocity from 3500 -> 4500 with resistance 0.125 is really coming real
                                         time = DateTime.now();
-                                        int rs =
-                                            _spinningController.calculateResult();
+                                        int rs = _spinningController
+                                            .calculateResult();
                                         setState(() {
                                           _result = '$rs';
                                         });
@@ -253,11 +291,11 @@ class _HomePageState extends State<HomePage>
                                         });
                                       },
                                       items: _dataSource
-                                          .map(
-                                              (value) => DropdownMenuItem<String>(
-                                                    value: value,
-                                                    child: Text(value),
-                                                  ))
+                                          .map((value) =>
+                                              DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Text(value),
+                                              ))
                                           .toList(),
                                     ),
 //                          Container(
@@ -309,22 +347,27 @@ class _HomePageState extends State<HomePage>
             },
             body: Column(
               children: <Widget>[
-                TabBar(
-                  controller: _tabController,
-                  indicatorColor: Colors.yellow,
-                  labelColor: Colors.yellow,
-                  unselectedLabelColor: Colors.white,
-                  onTap: (index) {
-                    _scrollController.animateTo(height, duration: Duration(milliseconds: 500), curve: Curves.linearToEaseOut);
-                  },
-                  tabs: <Widget>[
-                    Tab(
-                      child: Text('Đang bán'),
-                    ),
-                    Tab(
-                      child: Text('Sắp bán'),
-                    ),
-                  ],
+                PreferredSize(
+                  preferredSize: Size.fromHeight(_kTabBarHeight),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicatorColor: Colors.yellow,
+                    labelColor: Colors.yellow,
+                    unselectedLabelColor: Colors.white,
+                    onTap: (index) {
+                      _scrollController.animateTo(height,
+                          duration: Duration(milliseconds: 500),
+                          curve: Curves.linearToEaseOut);
+                    },
+                    tabs: <Widget>[
+                      Tab(
+                        child: Text('Đang bán'),
+                      ),
+                      Tab(
+                        child: Text('Sắp bán'),
+                      ),
+                    ],
+                  ),
                 ),
                 Expanded(
                   child: TabBarView(
@@ -355,7 +398,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void _scrollToGamePlay() {
-    _scrollController.animateTo(0, duration: Duration(seconds: 1), curve: Curves.linearToEaseOut);
+    _scrollController.animateTo(0,
+        duration: Duration(seconds: 1), curve: Curves.linearToEaseOut);
   }
 
   double _getVelocity() {
